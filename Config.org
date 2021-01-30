@@ -1,3 +1,9 @@
+#+title AYM1607's Emacs configuration
+#+PROPERTY: header-args:emacs-lisp :tangle ./init.el :results silent
+
+* Essentials
+
+#+begin_src emacs-lisp
 ;; Set custom file to be somewhere else.
 (setq custom-file "~/.emacs.d/custom.el")
 (load custom-file)
@@ -10,6 +16,10 @@
 ;; Avoid asking confirmation when killing a buffer with a process.
 (setq kill-buffer-query-functions nil)
 
+#+end_src
+
+** Package system setup
+#+begin_src emacs-lisp
 (require 'package)
 
 ;; Specify repositories.
@@ -28,6 +38,10 @@
 (require 'use-package)
 ;; Avoid using :ensure t on every package installation.
 (setq use-package-always-ensure t)
+
+#+end_src
+* Basic UI Configuration
+#+begin_src emacs-lisp
 
 (setq inhibit-startup-message t)
 
@@ -52,6 +66,10 @@
 ;; Do not center cursor after scroll.
 (setq scroll-conservatively 101)
 
+#+end_src
+
+** Font configuration
+#+begin_src emacs-lisp
 (set-face-attribute 'default nil :font "Fira Code Retina")
 
 ;; Enable ligatures for fonts that allow it (Fira Code does).
@@ -82,6 +100,14 @@
 ;;   ;; Enables ligature checks globally in all buffers.  You can also do it
 ;;   ;; per mode with `ligature-mode'.
 ;;   (global-ligature-mode t))
+
+#+end_src
+* Keybinding configuration
+** Evil
+Evil-mode is used to emulate vim keybindings inside emacs. general.el is used to provide leader-like functionality (using the space bar).
+evil-collection automatically configures more modes to support vim keybindings with evil.
+
+#+begin_src emacs-lisp
 
 ;; Make ESC quit prompts.
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Put with evil.
@@ -142,9 +168,22 @@ Repeated invocations toggle between the two most recently open buffers."
   :config
   (key-chord-mode 1)
   (key-chord-define evil-insert-state-map "kj" 'evil-normal-state))
+#+end_src
+
+** Hydra
+Hydra lets you define functions that require repeated actions, like adjusting font-sizes or windows width/height
+
+#+begin_src emacs-lisp
 
 ;; Setup hydra.
 (use-package hydra)
+
+#+end_src
+
+** Window leader bindings
+Leader key combinations to deal with windows. A hydra is defined to easily adjust a window's size.
+
+#+begin_src emacs-lisp
 
 ;; Window size hydras.
 (defhydra hydra-window-size (:timeout 4)
@@ -176,6 +215,13 @@ Repeated invocations toggle between the two most recently open buffers."
   "wd" '(delete-window :which-key "delete current window")
   "wf" '(mariano/toggle-maximize-window :which-key "maximize window"))
 
+#+end_src
+
+** Buffer leader bindings
+Leader key combinations to deal with buffers.
+
+#+begin_src emacs-lisp
+
 ;; Kill all buffers except the current one.
 (defun kill-other-buffers () 
   "Kill all other buffers." 
@@ -199,6 +245,12 @@ Repeated invocations toggle between the two most recently open buffers."
   "bk" '(mariano/kill-buffer-and-window :which-key "kill buffer")
   "be" '(eval-buffer :which-key "eval buffer")
   "bO" '(kill-other-buffers :which-key "keep only the current buffer"))
+#+end_src
+
+** File leader keys
+Leader key combinations to deal with files.
+
+#+begin_src emacs-lisp
 
 ;; Files leader keys.
 (mariano/leader-keys
@@ -206,14 +258,33 @@ Repeated invocations toggle between the two most recently open buffers."
   "ff" '(counsel-find-file :which-key "find file") ;; Consider replacing this with projectile find file.
   "fw" '(save-buffer :which-key "write file"))
 
+#+end_src
+** Punctuation
+Easily use accent marks.
+
+#+begin_src emacs-lisp
+
 ;; Allows for the left option key to be bound to the native OSX behavior.
 (setq ns-alternate-modifier 'none)
 (setq ns-right-alternate-modifier 'meta)
+
+#+end_src
+** Bookmarks leader keys
+Leader key combinations to easily acces and create bookmarks
+
+#+begin_src emacs-lisp
 
 (mariano/leader-keys
   "r" '(:ignore t :which-key "bookmarks")
   "rl" '(bookmark-bmenu-list :which-key "list bookmarks")
   "rc" '(bookmark-set :which-key "create at this location"))
+
+#+end_src
+* UI configuration
+** Color theme
+Using doom-themes. It supports many emacs modes with good functionality.
+
+#+begin_src emacs-lisp
 
 (use-package doom-themes
   :config
@@ -231,8 +302,22 @@ Repeated invocations toggle between the two most recently open buffers."
   ;; Corrects (and improves) org-mode's native fontification.
   (doom-themes-org-config))
 
+#+end_src
+
+** Modeline
+Use doom-modeline for a better looking but still minimal modeline.
+
+#+begin_src emacs-lisp
+
 (use-package doom-modeline
   :init (doom-modeline-mode 1))
+
+#+end_src
+
+** Whichkey
+UI panel to show all possible completions of keybindings.
+
+#+begin_src emacs-lisp
 
 ;; Show completion after pressing a prefix.
 (use-package which-key
@@ -240,6 +325,16 @@ Repeated invocations toggle between the two most recently open buffers."
   :init (which-key-mode)
   :config
   (setq which-key-idle-delay 0.3))
+
+#+end_src
+
+** Ivy, Counsel and Swiper
+Ivy is a completion framework for emacs that lets you easily select options when finding files, switching buffers, etc. Counsel replaces built-in
+functions in emacs with ivy-aware options, like counsel-find-file for find-file. Swiper is a search functionality.
+
+ivy-rich adds extra information (definitions, keybindings) to some counsel commands. (describe function and variable are some examples)
+
+#+begin_src emacs-lisp
 
 (use-package swiper)
 
@@ -276,6 +371,13 @@ Repeated invocations toggle between the two most recently open buffers."
   :init
   (ivy-rich-mode))
 
+#+end_src
+
+** Helpful help commands
+The helpful package adds extra information in describe commands panels.
+
+#+begin_src emacs-lisp
+
 ;; Show more information in help pages.
 (use-package helpful
  :init
@@ -286,6 +388,13 @@ Repeated invocations toggle between the two most recently open buffers."
  ([remap describe-command] . helpful-command)
  ([remap describe-variable] . counsel-describe-variable)
  ([remap describe-key] . helpful-key))
+
+#+end_src
+
+** Line numbers
+I use relative line numbers very often with vim keybindings. But I only want them when in certain modes.
+
+#+begin_src emacs-lisp
 
 ;; Display line numbers
 (column-number-mode)			; Show colum in modeline.
@@ -304,9 +413,25 @@ Repeated invocations toggle between the two most recently open buffers."
 											shell-mode
 											eshell-mode)) 
 					      (setq display-line-numbers 'relative))))
+#+end_src
+
+*** TODO Move the list of of modes to be excluded from lines to a separate list in a viariable.
+
+** Highlighted todos
+The hl-todo package highlights todo keywords inside source code (except org mode).
+
+#+begin_src emacs-lisp
 
 (use-package hl-todo
   :config (global-hl-todo-mode))
+
+#+end_src
+* Org mode
+** Better fonts
+This function sets up all the headers to be a variable width font (In this case arial) and with different font-sizes. It also replaces the hyphens
+in lists to be a utf-8 dot.
+
+#+begin_src emacs-lisp
 
 (defun mariano/org-font-setup ()
     ;; Set faces for heading levels
@@ -324,6 +449,12 @@ Repeated invocations toggle between the two most recently open buffers."
     (font-lock-add-keywords 'org-mode
 			    '(("^ *\\([-]\\) "
 			    (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•")))))))
+
+#+end_src
+** Basic config
+Contains basic configuration for org mode, this includes agenda and capture templates.
+
+#+begin_src emacs-lisp
 
 (defun mariano/org-mode-setup () 
   (org-indent-mode)
@@ -377,6 +508,11 @@ Repeated invocations toggle between the two most recently open buffers."
       org-edit-src-content-indentation 0)
   (mariano/org-font-setup))
 
+#+end_src
+*** Keybindings for org
+
+#+begin_src emacs-lisp
+
 (defun mariano/openTasks ()
   "Open the tasks file"
   (interactive)
@@ -399,11 +535,25 @@ Repeated invocations toggle between the two most recently open buffers."
 					    (define-key org-agenda-mode-map "j" 'evil-next-line)
 					    (define-key org-agenda-mode-map "k" 'evil-previous-line)))) ;; Not so sure if needed.
 
+#+end_src
+
+*** Nicer heading bullets
+Replace default heading bullets to be more consistent.
+
+#+begin_src emacs-lisp
+
 (use-package org-bullets
   :after org
   :hook (org-mode . org-bullets-mode)
   :custom
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+
+#+end_src
+
+*** Center org buffers
+Since org is an outliner, it might be better to center the buffer. In this case we choose 150 characters as the width.
+
+#+begin_src emacs-lisp
 
 (defun mariano/org-mode-visual-fill ()
   (setq fill-column 150) ;; Make fill-column consistent with the column width.
@@ -415,13 +565,19 @@ Repeated invocations toggle between the two most recently open buffers."
 (use-package visual-fill-column
   :hook (org-mode . mariano/org-mode-visual-fill))
 
+#+end_src
+
+** Configure babel languages
+#+begin_src emacs-lisp
 (org-babel-do-load-languages
  'org-babel-load-languages
  '((emacs-lisp . t)
    (python . t)))
 
 (setq org-confirm-babel-evaluate nil)
-
+#+end_src
+** Auto-tangle configuration file
+#+begin_src emacs-lisp
 ;; Automatically tangle Config.org when we save it.
 (defun mariano/org-babel-tangle-config ()
   (when (string-equal (buffer-file-name)
@@ -432,13 +588,33 @@ Repeated invocations toggle between the two most recently open buffers."
 
 (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'mariano/org-babel-tangle-config)))
 
+#+end_src
+
+** Structure templates
+#+begin_src emacs-lisp 
 (require 'org-tempo)
 
 (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp")) ;; Emacs lisp source block.
 (add-to-list 'org-structure-template-alist '("py" . "src python")) ;; Python lisp source block.
+#+end_src
+* Development
+This section is for development tools.
+** Commenting
+Better commenting.
+
+#+begin_src emacs-lisp
 
 (use-package evil-nerd-commenter
   :bind ("M-/" . evilnc-comment-or-uncomment-lines))
+
+#+end_src
+
+** Languages
+*** IDE Features
+**** lsp mode
+Basic configuration for languages servers interactions.
+
+#+begin_src emacs-lisp 
 
 (defun mariano/lsp-mode-setup ()
   ;; Show breadcrumb headbar.
@@ -464,16 +640,51 @@ Repeated invocations toggle between the two most recently open buffers."
   "lr" '(:ignore t :which-key "refactor")
   "lrr" '(lsp-rename :which-key "rename"))
 
+#+end_src
+**** lsp ui
+UI enhancements for lsp-mode, mainly in the shape of sidelines.
+
+#+begin_src emacs-lisp
+
 (use-package lsp-ui
   :hook (lsp-mode . lsp-ui-mode)
   :custom
   (lsp-ui-doc-position 'bottom)
   (lsp-ui-doc-include-signature t))
 
+#+end_src
+**** Treemacs
+Consider using treemacs to show a directory UI like in a regular IDE.
+
+| Function             | Description                                                          |
+|----------------------+----------------------------------------------------------------------|
+| treemacs             | Opens the directory tree view with the current file selected         |
+| lsp-treemacs-symbols | Opens an extra pane where the symbols for the current file are shown |
+|                      |                                                                      |
+
+#+begin_src emacs-lisp
 ;; (use-package lsp-treemacs
 ;;   :after lsp)
+#+end_src
+
+**** Lsp ivy
+Easily query symbols inside a project.
+
+| Function                 | Description                                 |
+|--------------------------+---------------------------------------------|
+| lsp-ivy-workspace-symbol | Searches for symbols in the current project |
+|                          |                                             |
+
+#+begin_src emacs-lisp
 
 (use-package lsp-ivy)
+
+#+end_src
+
+*** TypeScript
+Mode package for TypeScript.
+
+#+begin_src emacs-lisp
 
 (use-package typescript-mode
   :mode "\\.ts\\'"
@@ -481,12 +692,29 @@ Repeated invocations toggle between the two most recently open buffers."
   :config
   (setq typescript-indent-level 2))
 
+#+end_src
+
+*** JavaScript
+
+Mode package for JavaScript.
+
+#+begin_src emacs-lisp
+
 (use-package 
   rjsx-mode 
   :mode "\\.js\\'" 
   :hook ((rjsx-mode . lsp-deferred) 
 	       (rjsx-mode . origami-mode)) 
   :config (setq js-indent-level 2))
+
+#+end_src
+
+*** Python
+Configuration for Python.
+
+*Important note:* If yasnippet is not installed, the insertion of a function using company mode fails and the parenthesis are auto-closed with a $0 inside and the cursor after the function.
+
+#+begin_src emacs-lisp
 
 (use-package 
   lsp-python-ms
@@ -517,8 +745,22 @@ Repeated invocations toggle between the two most recently open buffers."
 ;; ((python-mode . ((python-shell-interpreter . "~/dev/6502/eeprom_programmer/venv/bin/python")
 ;; 		 (lsp-python-ms-python-executable . "~/dev/6502/eeprom_programmer/venv/bin/python"))))
 
+#+end_src
+
+**** TODO Figure out a way of making the selection of the interpreter easier.
+
+*** YAML
+
+Mode package for YAML
+
+#+begin_src emacs-lisp
 (use-package yaml-mode
   :mode "\\.yml\\'")
+#+end_src
+** Company mode
+For this config, company mode will only be used with lsp mode. It provides a better workflow for code completion.
+
+#+begin_src emacs-lisp
 
 (defun mariano/company-select-first-and-complete ()
   "Selects the appropriate candidate in the company mode list and completes it."
@@ -543,10 +785,22 @@ Repeated invocations toggle between the two most recently open buffers."
 ;; Imporove the UI for company mode.
 (use-package company-box
   :hook (company-mode . company-box-mode))
+#+end_src
+** Snippets
+Configuring yasnippet.
 
+#+begin_src emacs-lisp
 (use-package yasnippet
   :config
   (yas-global-mode 1))
+#+end_src
+
+** Projectile
+Project management tool to quickly navigate around different projects. Has heuristics to identify root folders for projects.
+I set up ~/dev as my projects directory but projectile does not recurse down. Once a project is opened though, it is stored and available for
+later use.
+
+#+begin_src emacs-lisp
 
 (use-package projectile
   :diminish
@@ -570,6 +824,12 @@ Repeated invocations toggle between the two most recently open buffers."
   :after projectile
   :config (counsel-projectile-mode))
 
+#+end_src
+** Magit
+Nice git interface for emacs.
+
+#+begin_src emacs-lisp
+
 (use-package magit)
 ;; :custom
 ;; (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)) ;; Use this if diffing in a different window is annoying.
@@ -583,8 +843,22 @@ Repeated invocations toggle between the two most recently open buffers."
 
 ;; (use-package forge) ;; Use this package if I want to do extra git stuff from emacs.
 
+#+end_src
+
+** Rainbow delimiters
+Add color coding to delimiters, specially useful for languages like lisp.
+
+#+begin_src emacs-lisp
+
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
+
+#+end_src
+
+** Formatters
+Formatters for different languages.
+
+#+begin_src emacs-lisp
 
 ;; Emacs lisp.
 (use-package elisp-format) ;; This goes in development.
@@ -592,6 +866,12 @@ Repeated invocations toggle between the two most recently open buffers."
 (use-package prettier)
 
 (add-hook 'after-init-hook #'global-prettier-mode)
+
+#+end_src
+
+** Vterm
+
+#+begin_src emacs-lisp
 
 (use-package vterm
   :commands vterm
@@ -605,7 +885,18 @@ Repeated invocations toggle between the two most recently open buffers."
   "tt" '(vterm :which-key "terminal same window")
   "to" '(vterm-other-window :which-key "terminal other window"))
 
+#+end_src
+** Folding
+We use origami for folding, keybindings are automatically set by evil.
+#+begin_src emacs-lisp
+
 (use-package origami)
+
+#+end_src
+* File Management
+** Dired
+
+#+begin_src emacs-lisp
 
 (defun mariano/dired-setup ()
   (auto-revert-mode)
@@ -633,3 +924,4 @@ Repeated invocations toggle between the two most recently open buffers."
 ;; Dired leader keys.
 (mariano/leader-keys
   "j" '(dired-jump :which-key "Open in dired"))
+#+end_src
