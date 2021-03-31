@@ -141,7 +141,9 @@ Repeated invocations toggle between the two most recently open buffers."
 (use-package key-chord
   :config
   (key-chord-mode 1)
-  (key-chord-define evil-insert-state-map "kj" 'evil-normal-state))
+  (key-chord-define evil-insert-state-map "kj" 'evil-normal-state)
+  :custom
+  (key-chord-two-keys-delay 0.3))
 
 ;; Setup hydra.
 (use-package hydra)
@@ -462,7 +464,8 @@ Repeated invocations toggle between the two most recently open buffers."
   "lgd" '(lsp-find-definition :which-key "go to definition")
   "lgi" '(lsp-find-implementation :which-key "find implementation")
   "lr" '(:ignore t :which-key "refactor")
-  "lrr" '(lsp-rename :which-key "rename"))
+  "lrr" '(lsp-rename :which-key "rename")
+)
 
 (use-package lsp-ui
   :hook (lsp-mode . lsp-ui-mode)
@@ -510,8 +513,12 @@ Repeated invocations toggle between the two most recently open buffers."
 			      (python-black-on-save-mode)))
 
 ;; Use 4 spaces for the indent level.
-(add-hook 'python-mode-hook (lambda ()
-			      (setq python-indent-offset 4)))
+(add-hook 'python-mode-hook (lambda () 
+			      (progn
+				 (setq python-guess-indent nil)
+				 (setq python-indent-guess-indent-offset nil)
+				 (setq python-indent 4)
+				 (setq python-indent-offset 4))))
 
 ;; If used withing a project that was a virtualenv, use a .dir-locals.el to set the proper interpreter.
 ;; ((python-mode . ((python-shell-interpreter . "~/dev/6502/eeprom_programmer/venv/bin/python")
@@ -519,6 +526,19 @@ Repeated invocations toggle between the two most recently open buffers."
 
 (use-package yaml-mode
   :mode "\\.yml\\'")
+
+(use-package go-mode
+  :config
+  (setq gofmt-command (concat (getenv "GOPATH") "/bin/goimports"))
+  (add-hook 'before-save-hook 'gofmt-before-save))
+
+(load "~/.emacs.d/local-packages/emacs-prisma-mode/prisma-mode.el")
+(require 'prisma-mode)
+
+(setq auto-mode-alist
+      (cons '("\\.prisma$" . prisma-mode) auto-mode-alist))
+(setq lsp-language-id-configuration
+      (cons '("\\.prisma$" . "prisma") lsp-language-id-configuration))
 
 (defun mariano/company-select-first-and-complete ()
   "Selects the appropriate candidate in the company mode list and completes it."
@@ -535,8 +555,8 @@ Repeated invocations toggle between the two most recently open buffers."
   :hook (lsp-mode . company-mode) ;; Run whenever lsp-mode is active.
   :bind (:map company-active-map
 	      ("<tab>" . 'mariano/company-select-first-and-complete)) ;; When pressing tab, insert the first candidate. Default is cycle.
-  ;; :map (lsp-mode-map 
-  ;; 	("<tab>" . company-indent-or-complete-common)) ;; Activate if I want common completions in empty line.
+  (:map lsp-mode-map 
+	("<tab>" . company-indent-or-complete-common)) ;; Activate if I want common completions in empty line.
   :custom (company-minimum-prefix-length 1) 
   (company-idle-delay 0.0))
 
@@ -563,7 +583,8 @@ Repeated invocations toggle between the two most recently open buffers."
 (mariano/leader-keys
   "p" '(:ignore t :which-key "Projectile")
   "pp" '(projectile-switch-project :which-key "switch project")
-  "pf" '(projectile-find-file :which-key "find file in project"))
+  "pf" '(projectile-find-file :which-key "find file in project")
+  "ps" '(projectile-ripgrep :which-key "search in whole project"))
 
 ;; Extra ivy actions for projectile commands.
 (use-package counsel-projectile
@@ -633,3 +654,11 @@ Repeated invocations toggle between the two most recently open buffers."
 ;; Dired leader keys.
 (mariano/leader-keys
   "j" '(dired-jump :which-key "Open in dired"))
+
+(defun mariano/open-zshell-config ()
+  (interactive)
+  (find-file "~/.zshrc"))
+
+(mariano/leader-keys
+  "c" '(:ignore t :which-key "config files")
+  "cz" '(mariano/open-zshell-config :which-key "zshell config"))
