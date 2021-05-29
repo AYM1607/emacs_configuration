@@ -643,6 +643,7 @@ Basic configuration for languages servers interactions.
   "lg" '(:ignore t :which-key "goto")
   "lgd" '(lsp-find-definition :which-key "go to definition")
   "lgi" '(lsp-find-implementation :which-key "find implementation")
+  "lgr" '(lsp-find-references :which-key "find references")
   "lr" '(:ignore t :which-key "refactor")
   "lrr" '(lsp-rename :which-key "rename")
 )
@@ -786,6 +787,24 @@ Mode package for YAML
       (cons '("\\.prisma$" . prisma-mode) auto-mode-alist))
 (setq lsp-language-id-configuration
       (cons '("\\.prisma$" . "prisma") lsp-language-id-configuration))
+#+end_src
+*** Elixir
+#+begin_src emacs-lisp
+(use-package elixir-mode
+  :hook (elixir-mode . lsp-deferred)
+  :init
+  (add-to-list 'exec-path "/Users/marianouvalle/.config/nvim/lang-srvrs/elixir-ls"))
+
+(add-hook 'elixir-mode-hook
+	  (lambda () (add-hook 'before-save-hook 'lsp-format-buffer  nil 'local)))
+#+end_src
+*** C/C++
+#+begin_src emacs-lisp
+(add-hook 'c-mode-hook
+  (lambda () (lsp t)))
+
+(add-hook 'c++-mode-hook
+  (lambda () (lsp t)))
 #+end_src
 ** Company mode
 For this config, company mode will only be used with lsp mode. It provides a better workflow for code completion.
