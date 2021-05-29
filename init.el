@@ -10,6 +10,9 @@
 ;; Avoid asking confirmation when killing a buffer with a process.
 (setq kill-buffer-query-functions nil)
 
+;; Don't show warnings when doing async native com.
+(setq native-comp-async-report-warnings-errors nil)
+
 (require 'package)
 
 ;; Specify repositories.
@@ -179,18 +182,19 @@ Repeated invocations toggle between the two most recently open buffers."
   "wf" '(mariano/toggle-maximize-window :which-key "maximize window"))
 
 ;; Kill all buffers except the current one.
-(defun kill-other-buffers () 
-  "Kill all other buffers." 
-  (interactive) 
+(defun kill-other-buffers ()
+  "Kill all other buffers."
+  (interactive)
   (mapc 'kill-buffer ;; Apply the command kill-buffer to all elements of the list.
         (delq (current-buffer) ;; Remove the current buffer from the list of to-be-removed.
               (cl-remove-if-not 'buffer-file-name (buffer-list))))) ;; Only remove file buffers.
 
-(defun mariano/kill-buffer-and-window ()
-  "Kills the current buffer. If there's more than one active window it also closes the current one"
-  (interactive)
-  (if (> (count-windows) 1)
-      (kill-buffer-and-window)
+(defun mariano/kill-buffer-and-window () 
+  "Kills the current buffer. If there's more than one window and it is not the leftmost window, it also kills it." 
+  (interactive) 
+  (if (and (> (count-windows) 1) 
+	   (window-left (selected-window))) 
+	(kill-buffer-and-window)
     (kill-buffer)))
 
 
@@ -463,6 +467,7 @@ Repeated invocations toggle between the two most recently open buffers."
   "lg" '(:ignore t :which-key "goto")
   "lgd" '(lsp-find-definition :which-key "go to definition")
   "lgi" '(lsp-find-implementation :which-key "find implementation")
+  "lgr" '(lsp-find-references :which-key "find references")
   "lr" '(:ignore t :which-key "refactor")
   "lrr" '(lsp-rename :which-key "rename")
 )
@@ -539,6 +544,20 @@ Repeated invocations toggle between the two most recently open buffers."
       (cons '("\\.prisma$" . prisma-mode) auto-mode-alist))
 (setq lsp-language-id-configuration
       (cons '("\\.prisma$" . "prisma") lsp-language-id-configuration))
+
+(use-package elixir-mode
+  :hook (elixir-mode . lsp-deferred)
+  :init
+  (add-to-list 'exec-path "/Users/marianouvalle/.config/nvim/lang-srvrs/elixir-ls"))
+
+(add-hook 'elixir-mode-hook
+	  (lambda () (add-hook 'before-save-hook 'lsp-format-buffer  nil 'local)))
+
+(add-hook 'c-mode-hook
+  (lambda () (lsp t)))
+
+(add-hook 'c++-mode-hook
+  (lambda () (lsp t)))
 
 (defun mariano/company-select-first-and-complete ()
   "Selects the appropriate candidate in the company mode list and completes it."
