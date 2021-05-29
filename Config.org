@@ -16,6 +16,9 @@
 ;; Avoid asking confirmation when killing a buffer with a process.
 (setq kill-buffer-query-functions nil)
 
+;; Don't show warnings when doing async native com.
+(setq native-comp-async-report-warnings-errors nil)
+
 #+end_src
 
 ** Package system setup
@@ -225,18 +228,19 @@ Leader key combinations to deal with buffers.
 #+begin_src emacs-lisp
 
 ;; Kill all buffers except the current one.
-(defun kill-other-buffers () 
-  "Kill all other buffers." 
-  (interactive) 
+(defun kill-other-buffers ()
+  "Kill all other buffers."
+  (interactive)
   (mapc 'kill-buffer ;; Apply the command kill-buffer to all elements of the list.
         (delq (current-buffer) ;; Remove the current buffer from the list of to-be-removed.
               (cl-remove-if-not 'buffer-file-name (buffer-list))))) ;; Only remove file buffers.
 
-(defun mariano/kill-buffer-and-window ()
-  "Kills the current buffer. If there's more than one active window it also closes the current one"
-  (interactive)
-  (if (> (count-windows) 1)
-      (kill-buffer-and-window)
+(defun mariano/kill-buffer-and-window () 
+  "Kills the current buffer. If there's more than one window and it is not the leftmost window, it also kills it." 
+  (interactive) 
+  (if (and (> (count-windows) 1) 
+	   (window-left (selected-window))) 
+	(kill-buffer-and-window)
     (kill-buffer)))
 
 
